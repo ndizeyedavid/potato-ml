@@ -1,0 +1,10 @@
+tensorflow>=2.5.0
+fastapi>=0.68.0
+uvicorn[standard]>=0.15.0
+python-multipart>=0.0.5
+pillow>=8.3.2
+tensorflow-serving-api>=2.5.0
+matplotlib>=3.4.3
+numpy>=1.19.5
+uvloop>=0.16.0
+httptools>=0.3.0

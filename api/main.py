@@ -1,0 +1,233 @@
+
+
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+import uvicorn
+import numpy as np
+from io import BytesIO
+from PIL import Image
+import tensorflow as tf
+import os
+from typing import Optional, Dict, Any
+import logging
+from functools import lru_cache
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title="Potato Disease Classification API",
+             description="API for classifying potato plant diseases",
+             version="1.0.0")
+
+# Get allowed origins from environment variable or use defaults
+origins = os.getenv("ALLOWED_ORIGINS", "http://localhost,http://localhost:3000,http://localhost:3001").split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Initialize model as None
+MODEL: Optional[tf.keras.Model] = None
+CLASS_NAMES = ["Early Blight", "Late Blight", "Healthy"]
+
+# Constants
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
+MODEL_INPUT_SIZE = (256, 256)
+BATCH_SIZE = 32  # Optimal batch size for prediction
+
+# Cache the model in memory
+@lru_cache(maxsize=1)
+def get_model() -> tf.keras.Model:
+    """Get the cached model instance"""
+    global MODEL
+    if MODEL is None:
+        load_model()
+    return MODEL
+
+def load_model() -> Optional[tf.keras.Model]:
+    """Load the ML model and handle potential errors"""
+    global MODEL
+    try:
+        # Enable mixed precision for faster computation
+        tf.keras.mixed_precision.set_global_policy('mixed_float16')
+        
+        model_path = os.path.join(os.path.dirname(__file__), "..", "models", "potatoes_v1.h5")
+        if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+        
+        # Load model with optimized settings
+        MODEL = tf.keras.models.load_model(
+            model_path,
+            compile=False  # Load without compilation first
+        )
+        
+        # Recompile the model with optimized configuration
+        MODEL.compile(
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(reduction='mean'),
+            metrics=['accuracy'],
+            run_eagerly=False  # Disable eager execution for better performance
+        )
+        
+        logger.info("Model loaded and compiled successfully with optimized settings")
+        
+        # Validate model input shape
+        if len(MODEL.input_shape) != 4:
+            raise ValueError("Invalid model input shape")
+            
+    except Exception as e:
+        logger.error(f"Error loading model: {str(e)}")
+        raise RuntimeError(f"Failed to load ML model: {str(e)}")
+    
+    return MODEL
+
+@app.on_event("startup")
+async def startup():
+    """Initialize the model when the application starts"""
+    load_model()
+
+def is_valid_file_type(filename: str) -> bool:
+    """Check if the file type is allowed"""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def preprocess_image(contents: bytes) -> np.ndarray:
+    """Preprocess the image for model prediction with optimized operations"""
+    try:
+        # Use BytesIO for efficient memory handling
+        image = Image.open(BytesIO(contents))
+        
+        # Convert to RGB if needed
+        if image.mode != "RGB":
+            image = image.convert("RGB")
+        
+        # Resize with LANCZOS for better quality and performance
+        image = image.resize(MODEL_INPUT_SIZE, Image.LANCZOS)
+        
+        # Convert to numpy array efficiently
+        image_array = np.asarray(image, dtype=np.float32)
+        
+        # Normalize to [0,1] range
+        image_array = image_array / 255.0
+        
+        return image_array
+        
+    except Exception as e:
+        logger.error(f"Error preprocessing image: {str(e)}")
+        raise ValueError(f"Invalid image format: {str(e)}")
+
+@app.get("/ping")
+async def ping() -> Dict[str, Any]:
+    """Health check endpoint"""
+    model = get_model()
+    return {
+        "status": "healthy",
+        "model_loaded": model is not None,
+        "model_info": {
+            "input_shape": model.input_shape if model else None,
+            "class_names": CLASS_NAMES,
+            "mixed_precision": tf.keras.mixed_precision.global_policy().name
+        }
+    }
+
+@app.post("/predict")
+async def predict(
+    file: UploadFile = File(...)
+) -> Dict[str, Any]:
+    """Predict the disease class for an uploaded image with optimized processing"""
+    # Validate file presence
+    if not file:
+        raise HTTPException(status_code=400, detail="No file uploaded")
+    
+    # Validate file size
+    contents = await file.read()
+    file_size = len(contents)
+    if file_size > MAX_FILE_SIZE:
+        raise HTTPException(status_code=400, detail=f"File size exceeds maximum limit of {MAX_FILE_SIZE/1024/1024}MB")
+    
+    # Validate file type
+    if not is_valid_file_type(file.filename):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+        )
+    
+    try:
+        # Get cached model instance
+        model = get_model()
+        if model is None:
+            logger.error("Model not loaded")
+            raise HTTPException(status_code=500, detail="Model not loaded")
+        
+        # Preprocess image
+        processed_image = preprocess_image(contents)
+        
+        # Prepare batch for prediction
+        img_batch = np.expand_dims(processed_image, 0)
+        
+        try:
+            # Make prediction with optimized settings
+            predictions = model.predict(img_batch, verbose=0)
+        except Exception as pred_error:
+            logger.error(f"Prediction error: {str(pred_error)}")
+            raise HTTPException(status_code=500, detail="Error during prediction")
+        
+        predicted_class = CLASS_NAMES[np.argmax(predictions[0])]
+        confidence = float(np.max(predictions[0]))
+        
+        # Get confidence scores for all classes
+        class_confidences = {
+            class_name: float(conf)
+            for class_name, conf in zip(CLASS_NAMES, predictions[0])
+        }
+        
+        return {
+            'class': predicted_class,
+            'confidence': confidence,
+            'class_confidences': class_confidences,
+            'status': 'success',
+            'details': {
+                'file_name': file.filename,
+                'file_size': file_size,
+                'input_shape': img_batch.shape,
+                'prediction_shape': predictions.shape,
+                'processing_info': {
+                    'mixed_precision': tf.keras.mixed_precision.global_policy().name
+                }
+            }
+        }
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Unexpected error during prediction: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                'status': 'error',
+                'detail': str(e),
+                'type': 'UnexpectedError'
+            }
+        )
+
+if __name__ == "__main__":
+    # Get port from environment variable or use default
+    port = int(os.getenv("PORT", 8000))
+    host = os.getenv("HOST", "localhost")
+    
+    # Configure uvicorn with optimized settings
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        workers=1,  # Single worker for better resource utilization
+        loop="uvloop",  # Use uvloop for better performance
+        http="httptools"  # Use httptools for better HTTP parsing performance
+    )
+
