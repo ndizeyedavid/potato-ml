@@ -1,0 +1,4 @@
+picamera2
+requests
+pillow
+python-dotenv
