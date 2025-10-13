@@ -58,9 +58,16 @@ def load_model() -> Optional[tf.keras.Model]:
         # Enable mixed precision for faster computation
         tf.keras.mixed_precision.set_global_policy('mixed_float16')
         
-        model_path = os.path.join(os.path.dirname(__file__), "..", "models", "potatoes_v1.h5")
-        if not os.path.exists(model_path):
-            raise FileNotFoundError(f"Model file not found at {model_path}")
+        # Try Docker path first, then fall back to local development path
+        docker_model_path = "/app/models/potatoes_v1.h5"
+        local_model_path = os.path.join(os.path.dirname(__file__), "..", "models", "potatoes_v1.h5")
+        
+        if os.path.exists(docker_model_path):
+            model_path = docker_model_path
+        elif os.path.exists(local_model_path):
+            model_path = local_model_path
+        else:
+            raise FileNotFoundError(f"Model file not found at {docker_model_path} or {local_model_path}")
         
         # Load model with optimized settings
         MODEL = tf.keras.models.load_model(
