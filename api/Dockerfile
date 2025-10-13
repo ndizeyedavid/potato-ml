@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean
 
 # Copy requirements file first for better caching
-COPY requirements.txt .
+COPY api/requirements.txt .
 
 # Install Python dependencies with optimizations
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
@@ -33,12 +33,12 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 RUN mkdir -p /app/models
 
 # Copy the API code
-COPY main.py .
-COPY main-tf-serving.py .
+COPY api/main.py .
+COPY api/main-tf-serving.py .
 
-# Copy the model file from parent directory
-# Note: Docker build context should be set to parent directory
-COPY ../models/potatoes_v1.h5 /app/models/potatoes_v1.h5
+# Copy the model file
+# Docker build context is repository root, so we can access models/ directly
+COPY models/potatoes_v1.h5 /app/models/potatoes_v1.h5
 
 # Create a non-root user for security
 RUN useradd -m -u 1000 appuser && \
