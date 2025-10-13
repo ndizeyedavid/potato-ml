@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 import requests
 from PIL import Image
-from picamera2 import Picamera2
+import cv2
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -19,10 +19,9 @@ IMAGE_DIR = 'captured_images'
 class PotatoDiseaseDetector:
     def __init__(self):
         # Initialize camera
-        self.camera = Picamera2()
-        # Configure camera
-        config = self.camera.create_still_configuration()
-        self.camera.configure(config)
+        self.camera = cv2.VideoCapture(0)  # Use default webcam (usually USB webcam)
+        if not self.camera.isOpened():
+            raise RuntimeError("Could not open webcam")
         
         # Create directory for saving images if enabled
         if SAVE_IMAGES:
@@ -30,22 +29,19 @@ class PotatoDiseaseDetector:
 
     def capture_image(self):
         """Capture an image and return its path"""
-        # Start camera
-        self.camera.start()
-        # Wait for auto exposure and white balance
-        time.sleep(2)
+        # Capture frame
+        ret, frame = self.camera.read()
+        if not ret:
+            raise RuntimeError("Failed to capture image from webcam")
         
-        # Capture image
+        # Save image
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         if SAVE_IMAGES:
             image_path = f"{IMAGE_DIR}/potato_{timestamp}.jpg"
-            self.camera.capture_file(image_path)
         else:
             image_path = "temp_capture.jpg"
-            self.camera.capture_file(image_path)
-        
-        # Stop camera
-        self.camera.stop()
+            
+        cv2.imwrite(image_path, frame)
         return image_path
 
     def analyze_image(self, image_path):

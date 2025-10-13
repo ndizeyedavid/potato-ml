@@ -16,7 +16,7 @@ import { ThemedView } from "../../components/themed-view";
 const { width } = Dimensions.get("window");
 
 // Configure axios defaults
-const API_URL = "http://192.168.0.225:8000";
+const API_URL = "https://potato-ml-jgsa.onrender.com";
 axios.defaults.baseURL = API_URL;
 
 interface Prediction {
