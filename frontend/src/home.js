@@ -23,8 +23,7 @@ import {
   CircularProgress,
   Snackbar,
 } from "@material-ui/core";
-import cblogo from "./cblogo.PNG";
-import image from "./bg.png";
+// import image from "./bg.png";
 import { DropzoneArea } from "material-ui-dropzone";
 import { common } from "@material-ui/core/colors";
 import Clear from "@material-ui/icons/Clear";
@@ -71,10 +70,6 @@ const useStyles = makeStyles((theme) => ({
     padding: "4em 1em 0 1em",
   },
   mainContainer: {
-    backgroundImage: `url(${image})`,
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "center",
-    backgroundSize: "cover",
     height: "93vh",
     marginTop: "8px",
   },
