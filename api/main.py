@@ -22,7 +22,12 @@ app = FastAPI(title="Potato Disease Classification API",
              version="1.0.0")
 
 # Get allowed origins from environment variable or use defaults
-origins = os.getenv("ALLOWED_ORIGINS", "http://localhost,http://localhost:3000,http://localhost:3001").split(",")
+origins_env = os.getenv("ALLOWED_ORIGINS", "")
+if origins_env:
+    origins = origins_env.split(",")
+else:
+    # Default to allow all origins in development, or specify your frontend domains
+    origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
