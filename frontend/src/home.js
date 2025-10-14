@@ -8,20 +8,34 @@ import Container from "@material-ui/core/Container";
 import React from "react";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
-import { Paper, CardActionArea, CardMedia, Grid, TableContainer, Table, TableBody, TableHead, TableRow, TableCell, Button, CircularProgress, Snackbar } from "@material-ui/core";
+import {
+  Paper,
+  CardActionArea,
+  CardMedia,
+  Grid,
+  TableContainer,
+  Table,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+  Button,
+  CircularProgress,
+  Snackbar,
+} from "@material-ui/core";
 import cblogo from "./cblogo.PNG";
 import image from "./bg.png";
-import { DropzoneArea } from 'material-ui-dropzone';
-import { common } from '@material-ui/core/colors';
-import Clear from '@material-ui/icons/Clear';
-import RefreshIcon from '@material-ui/icons/Refresh';
+import { DropzoneArea } from "material-ui-dropzone";
+import { common } from "@material-ui/core/colors";
+import Clear from "@material-ui/icons/Clear";
+import RefreshIcon from "@material-ui/icons/Refresh";
 
 const ColorButton = withStyles((theme) => ({
   root: {
     color: theme.palette.getContrastText(common.white),
     backgroundColor: common.white,
-    '&:hover': {
-      backgroundColor: '#ffffff7a',
+    "&:hover": {
+      backgroundColor: "#ffffff7a",
     },
   },
 }))(Button);
@@ -49,7 +63,7 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: theme.spacing(2),
-    margin: 'auto',
+    margin: "auto",
     maxWidth: 500,
   },
   gridContainer: {
@@ -58,9 +72,9 @@ const useStyles = makeStyles((theme) => ({
   },
   mainContainer: {
     backgroundImage: `url(${image})`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'center',
-    backgroundSize: 'cover',
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "cover",
     height: "93vh",
     marginTop: "8px",
   },
@@ -68,12 +82,12 @@ const useStyles = makeStyles((theme) => ({
     margin: "auto",
     maxWidth: 400,
     height: 500,
-    backgroundColor: 'transparent',
-    boxShadow: '0px 9px 70px 0px rgb(0 0 0 / 30%) !important',
-    borderRadius: '15px',
+    backgroundColor: "transparent",
+    boxShadow: "0px 9px 70px 0px rgb(0 0 0 / 30%) !important",
+    borderRadius: "15px",
   },
   imageCardEmpty: {
-    height: 'auto',
+    height: "auto",
   },
   noImage: {
     margin: "auto",
@@ -81,46 +95,46 @@ const useStyles = makeStyles((theme) => ({
     height: "400 !important",
   },
   input: {
-    display: 'none',
+    display: "none",
   },
   uploadIcon: {
-    background: 'white',
+    background: "white",
   },
   tableContainer: {
-    backgroundColor: 'transparent !important',
-    boxShadow: 'none !important',
+    backgroundColor: "transparent !important",
+    boxShadow: "none !important",
   },
   table: {
-    backgroundColor: 'transparent !important',
+    backgroundColor: "transparent !important",
   },
   tableHead: {
-    backgroundColor: 'transparent !important',
+    backgroundColor: "transparent !important",
   },
   tableRow: {
-    backgroundColor: 'transparent !important',
+    backgroundColor: "transparent !important",
   },
   tableCell: {
-    fontSize: '22px',
-    backgroundColor: 'transparent !important',
-    borderColor: 'transparent !important',
-    color: '#000000a6 !important',
-    fontWeight: 'bolder',
-    padding: '1px 24px 1px 16px',
+    fontSize: "22px",
+    backgroundColor: "transparent !important",
+    borderColor: "transparent !important",
+    color: "#000000a6 !important",
+    fontWeight: "bolder",
+    padding: "1px 24px 1px 16px",
   },
   tableCell1: {
-    fontSize: '14px',
-    backgroundColor: 'transparent !important',
-    borderColor: 'transparent !important',
-    color: '#000000a6 !important',
-    fontWeight: 'bolder',
-    padding: '1px 24px 1px 16px',
+    fontSize: "14px",
+    backgroundColor: "transparent !important",
+    borderColor: "transparent !important",
+    color: "#000000a6 !important",
+    fontWeight: "bolder",
+    padding: "1px 24px 1px 16px",
   },
   tableBody: {
-    backgroundColor: 'transparent !important',
+    backgroundColor: "transparent !important",
   },
   text: {
-    color: 'white !important',
-    textAlign: 'center',
+    color: "white !important",
+    textAlign: "center",
   },
   buttonGrid: {
     maxWidth: "416px",
@@ -128,36 +142,46 @@ const useStyles = makeStyles((theme) => ({
     marginTop: "10px",
   },
   detail: {
-    backgroundColor: 'white',
-    display: 'flex',
-    justifyContent: 'center',
-    flexDirection: 'column',
-    alignItems: 'center',
-    padding: '15px',
+    backgroundColor: "white",
+    display: "flex",
+    justifyContent: "center",
+    flexDirection: "column",
+    alignItems: "center",
+    padding: "15px",
   },
   appbar: {
-    background: '#be6a77',
-    boxShadow: 'none',
-    color: 'white'
+    background: "#be6a77",
+    boxShadow: "none",
+    color: "white",
   },
   loader: {
-    color: '#be6a77 !important',
+    color: "#be6a77 !important",
   },
   confidence: {
-    color: props => props.confidence >= 70 ? 'green' : props.confidence >= 40 ? 'orange' : 'red',
-    fontWeight: 'bold',
+    color: (props) =>
+      props.confidence >= 70
+        ? "green"
+        : props.confidence >= 40
+        ? "orange"
+        : "red",
+    fontWeight: "bold",
   },
   errorText: {
-    color: 'red',
-    marginTop: '10px',
-    textAlign: 'center',
+    color: "red",
+    marginTop: "10px",
+    textAlign: "center",
   },
   retryButton: {
-    marginTop: '10px',
+    marginTop: "10px",
   },
   snackbar: {
-    backgroundColor: props => props.snackbarType === 'error' ? '#f44336' : props.snackbarType === 'warning' ? '#ff9800' : '#4caf50',
-    color: 'white',
+    backgroundColor: (props) =>
+      props.snackbarType === "error"
+        ? "#f44336"
+        : props.snackbarType === "warning"
+        ? "#ff9800"
+        : "#4caf50",
+    color: "white",
   },
 }));
 
@@ -168,11 +192,15 @@ export const ImageUpload = () => {
   const [image, setImage] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [snackbar, setSnackbar] = useState({ open: false, message: '', type: 'success' });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    type: "success",
+  });
   const confidence = data ? parseFloat(data.confidence) * 100 : 0;
   const classes = useStyles({ confidence, snackbarType: snackbar.type });
 
-  const showSnackbar = (message, type = 'success') => {
+  const showSnackbar = (message, type = "success") => {
     setSnackbar({ open: true, message, type });
   };
 
@@ -181,12 +209,12 @@ export const ImageUpload = () => {
   };
 
   const validateFile = (file) => {
-    const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
     if (!validTypes.includes(file.type)) {
-      throw new Error('Please upload a valid image file (JPG, JPEG, or PNG)');
+      throw new Error("Please upload a valid image file (JPG, JPEG, or PNG)");
     }
     if (file.size > 5 * 1024 * 1024) {
-      throw new Error('File size should not exceed 5MB');
+      throw new Error("File size should not exceed 5MB");
     }
   };
 
@@ -205,25 +233,31 @@ export const ImageUpload = () => {
         url: process.env.REACT_APP_API_URL,
         data: formData,
         headers: {
-          'Content-Type': 'multipart/form-data'
+          "Content-Type": "multipart/form-data",
         },
         validateStatus: function (status) {
           return status < 500;
-        }
+        },
       });
 
       if (response.status === 200) {
         setData(response.data);
         if (response.data.confidence < 0.4) {
-          showSnackbar('Low confidence prediction. Please try with a clearer image.', 'warning');
+          showSnackbar(
+            "Low confidence prediction. Please try with a clearer image.",
+            "warning"
+          );
         }
       } else {
-        throw new Error(response.data.detail || 'Failed to process image');
+        throw new Error(response.data.detail || "Failed to process image");
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.detail || err.message || 'An error occurred while processing the image';
+      const errorMessage =
+        err.response?.data?.detail ||
+        err.message ||
+        "An error occurred while processing the image";
       setError(errorMessage);
-      showSnackbar(errorMessage, 'error');
+      showSnackbar(errorMessage, "error");
     } finally {
       setIsLoading(false);
     }
@@ -274,7 +308,7 @@ export const ImageUpload = () => {
       setImage(true);
       setError(null);
     } catch (err) {
-      showSnackbar(err.message, 'error');
+      showSnackbar(err.message, "error");
     }
   };
 
@@ -283,13 +317,16 @@ export const ImageUpload = () => {
       <AppBar position="static" className={classes.appbar}>
         <Toolbar>
           <Typography className={classes.title} variant="h6" noWrap>
-            CodeBasics: Potato Disease Classification
+            Potato Disease Classification
           </Typography>
           <div className={classes.grow} />
-          <Avatar src={cblogo}></Avatar>
         </Toolbar>
       </AppBar>
-      <Container maxWidth={false} className={classes.mainContainer} disableGutters={true}>
+      <Container
+        maxWidth={false}
+        className={classes.mainContainer}
+        disableGutters={true}
+      >
         <Grid
           className={classes.gridContainer}
           container
@@ -299,72 +336,109 @@ export const ImageUpload = () => {
           spacing={2}
         >
           <Grid item xs={12}>
-            <Card className={`${classes.imageCard} ${!image ? classes.imageCardEmpty : ''}`}>
-              {image && <CardActionArea>
-                <CardMedia
-                  className={classes.media}
-                  image={preview}
-                  component="image"
-                  title="Potato Plant Leaf"
-                />
-              </CardActionArea>}
-              
-              {!image && <CardContent className={classes.content}>
-                <DropzoneArea
-                  acceptedFiles={['image/jpeg', 'image/png', 'image/jpg']}
-                  dropzoneText={"Drag and drop an image of a potato plant leaf to process"}
-                  onChange={onSelectFile}
-                  maxFileSize={5000000}
-                  showPreviewsInDropzone={false}
-                  showFileNames
-                  filesLimit={1}
-                />
-              </CardContent>}
+            <Card
+              className={`${classes.imageCard} ${
+                !image ? classes.imageCardEmpty : ""
+              }`}
+            >
+              {image && (
+                <CardActionArea>
+                  <CardMedia
+                    className={classes.media}
+                    image={preview}
+                    component="image"
+                    title="Potato Plant Leaf"
+                  />
+                </CardActionArea>
+              )}
 
-              {error && <CardContent className={classes.detail}>
-                <Typography variant="body1" className={classes.errorText}>
-                  {error}
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={classes.retryButton}
-                  onClick={retryRequest}
-                  startIcon={<RefreshIcon />}
-                >
-                  Retry
-                </Button>
-              </CardContent>}
+              {!image && (
+                <CardContent className={classes.content}>
+                  <DropzoneArea
+                    acceptedFiles={["image/jpeg", "image/png", "image/jpg"]}
+                    dropzoneText={
+                      "Drag and drop an image of a potato plant leaf to process"
+                    }
+                    onChange={onSelectFile}
+                    maxFileSize={5000000}
+                    showPreviewsInDropzone={false}
+                    showFileNames
+                    filesLimit={1}
+                  />
+                </CardContent>
+              )}
 
-              {isLoading && <CardContent className={classes.detail}>
-                <CircularProgress className={classes.loader} />
-                <Typography variant="body1" style={{ marginTop: '10px' }}>
-                  Processing image...
-                </Typography>
-              </CardContent>}
+              {error && (
+                <CardContent className={classes.detail}>
+                  <Typography variant="body1" className={classes.errorText}>
+                    {error}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className={classes.retryButton}
+                    onClick={retryRequest}
+                    startIcon={<RefreshIcon />}
+                  >
+                    Retry
+                  </Button>
+                </CardContent>
+              )}
 
-              {data && !error && <CardContent className={classes.detail}>
-                <TableContainer component={Paper} className={classes.tableContainer}>
-                  <Table className={classes.table} size="small" aria-label="prediction results">
-                    <TableHead className={classes.tableHead}>
-                      <TableRow className={classes.tableRow}>
-                        <TableCell className={classes.tableCell1}>Disease:</TableCell>
-                        <TableCell align="right" className={classes.tableCell1}>Confidence:</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody className={classes.tableBody}>
-                      <TableRow className={classes.tableRow}>
-                        <TableCell component="th" scope="row" className={classes.tableCell}>
-                          {data.class}
-                        </TableCell>
-                        <TableCell align="right" className={`${classes.tableCell} ${classes.confidence}`}>
-                          {confidence.toFixed(2)}%
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </CardContent>}
+              {isLoading && (
+                <CardContent className={classes.detail}>
+                  <CircularProgress className={classes.loader} />
+                  <Typography variant="body1" style={{ marginTop: "10px" }}>
+                    Processing image...
+                  </Typography>
+                </CardContent>
+              )}
+
+              {data && !error && (
+                <CardContent className={classes.detail}>
+                  <TableContainer
+                    component={Paper}
+                    className={classes.tableContainer}
+                  >
+                    <Table
+                      className={classes.table}
+                      size="small"
+                      aria-label="prediction results"
+                    >
+                      <TableHead className={classes.tableHead}>
+                        <TableRow className={classes.tableRow}>
+                          <TableCell className={classes.tableCell1}>
+                            Disease:
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            className={classes.tableCell1}
+                          >
+                            Confidence:
+                          </TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody className={classes.tableBody}>
+                        <TableRow className={classes.tableRow}>
+                          <TableCell
+                            component="th"
+                            scope="row"
+                            className={classes.tableCell}
+                          >
+                            {data.class}
+                          </TableCell>
+                          <TableCell
+                            align="right"
+                            className={`${classes.tableCell} ${classes.confidence}`}
+                          >
+                            {confidence.toFixed(2)}%
+                          </TableCell>
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              )}
             </Card>
           </Grid>
 
@@ -390,9 +464,9 @@ export const ImageUpload = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         ContentProps={{
-          className: classes.snackbar
+          className: classes.snackbar,
         }}
         message={snackbar.message}
       />
