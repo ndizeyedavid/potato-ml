@@ -1,5 +1,3 @@
-
-
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -12,6 +10,10 @@ import os
 from typing import Optional, Dict, Any
 import logging
 from functools import lru_cache
+from datetime import datetime
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+import traceback
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -102,8 +104,69 @@ def load_model() -> Optional[tf.keras.Model]:
 
 @app.on_event("startup")
 async def startup():
-    """Initialize the model when the application starts"""
+    """Initialize the model and MongoDB when the application starts"""
     load_model()
+    init_mongodb()
+
+# Initialize MongoDB client as None
+MONGO_CLIENT: Optional[MongoClient] = None
+MONGO_DB = None
+
+def get_mongo_client() -> Optional[MongoClient]:
+    """Get the MongoDB client instance"""
+    global MONGO_CLIENT
+    return MONGO_CLIENT
+
+def get_database():
+    """Get the database instance"""
+    global MONGO_DB
+    return MONGO_DB
+
+def init_mongodb():
+    """Initialize MongoDB connection"""
+    global MONGO_CLIENT, MONGO_DB
+    try:
+        # Get MongoDB connection details from environment variables
+        mongo_uri = os.getenv("MONGODB_URI", "mongodb://potatoml_milenodded:ad021f2d26979368a8c42bd5102032da7d171866@ym0c1x.h.filess.io:61034/potatoml_milenodded")
+        db_name = os.getenv("MONGODB_DATABASE", "potato_disease_db")
+        
+        # Create MongoDB client
+        MONGO_CLIENT = MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=5000,  # 5 second timeout
+            connectTimeoutMS=5000,
+            socketTimeoutMS=5000
+        )
+        
+        # Test the connection
+        MONGO_CLIENT.admin.command('ping')
+        MONGO_DB = MONGO_CLIENT[db_name]
+        logger.info(f"Successfully connected to MongoDB at {mongo_uri}")
+    except (ConnectionFailure, ServerSelectionTimeoutError) as e:
+        logger.error(f"Failed to connect to MongoDB: {str(e)}")
+        MONGO_CLIENT = None
+        MONGO_DB = None
+    except Exception as e:
+        logger.error(f"Unexpected error connecting to MongoDB: {str(e)}")
+        MONGO_CLIENT = None
+        MONGO_DB = None
+
+def save_prediction_to_mongodb(prediction_data: Dict[str, Any]):
+    """Save prediction result to MongoDB"""
+    try:
+        db = get_database()
+        if db is None:
+            logger.warning("MongoDB not initialized, skipping save")
+            return False
+            
+        collection = db["predictions"]
+        result = collection.insert_one(prediction_data)
+        logger.info(f"Saved prediction to MongoDB with ID: {result.inserted_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to save prediction to MongoDB: {str(e)}")
+        logger.error(traceback.format_exc())
+        return False
 
 def is_valid_file_type(filename: str) -> bool:
     """Check if the file type is allowed"""
@@ -199,6 +262,25 @@ async def predict(
             for class_name, conf in zip(CLASS_NAMES, predictions[0])
         }
         
+        # Prepare prediction data for MongoDB
+        prediction_data = {
+            "predicted_class": predicted_class,
+            "confidence": confidence,
+            "class_confidences": class_confidences,
+            "file_metadata": {
+                "filename": file.filename,
+                "size": file_size
+            },
+            "processing_details": {
+                "input_shape": img_batch.shape,
+                "prediction_shape": predictions.shape
+            },
+            "timestamp": datetime.utcnow()
+        }
+        
+        # Save to MongoDB asynchronously (non-blocking)
+        save_prediction_to_mongodb(prediction_data)
+        
         return {
             'class': predicted_class,
             'confidence': confidence,
@@ -219,6 +301,7 @@ async def predict(
         raise he
     except Exception as e:
         logger.error(f"Unexpected error during prediction: {str(e)}")
+        logger.error(traceback.format_exc())
         return JSONResponse(
             status_code=500,
             content={

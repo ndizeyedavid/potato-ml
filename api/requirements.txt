@@ -8,3 +8,4 @@ matplotlib>=3.4.3
 numpy>=1.19.5
 uvloop>=0.16.0
 httptools>=0.3.0
+pymongo>=4.0.0
