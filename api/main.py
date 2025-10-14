@@ -311,6 +311,66 @@ async def predict(
             }
         )
 
+@app.get("/predictions")
+async def get_predictions(
+    page: int = 1,
+    page_size: int = 20
+) -> Dict[str, Any]:
+    """Retrieve all prediction records from MongoDB with pagination"""
+    try:
+        # Validate pagination parameters
+        if page < 1:
+            page = 1
+        if page_size < 1 or page_size > 100:
+            page_size = 20
+            
+        # Get database connection
+        db = get_database()
+        if db is None:
+            logger.warning("MongoDB not initialized")
+            raise HTTPException(
+                status_code=503,
+                detail="Database not available"
+            )
+            
+        # Calculate skip value for pagination
+        skip = (page - 1) * page_size
+        
+        # Retrieve predictions from MongoDB
+        collection = db["predictions"]
+        predictions = list(collection.find(
+            {},
+            {"_id": 0}  # Exclude MongoDB _id field
+        ).skip(skip).limit(page_size).sort("timestamp", -1))  # Sort by timestamp descending
+        
+        # Get total count for pagination info
+        total_count = collection.count_documents({})
+        
+        return {
+            "status": "success",
+            "data": predictions,
+            "pagination": {
+                "page": page,
+                "page_size": page_size,
+                "total": total_count,
+                "pages": (total_count + page_size - 1) // page_size
+            }
+        }
+        
+    except OperationFailure as e:
+        logger.error(f"MongoDB authorization error: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail="Database authentication failed"
+        )
+    except Exception as e:
+        logger.error(f"Failed to retrieve predictions from MongoDB: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error while retrieving predictions"
+        )
+
 if __name__ == "__main__":
     # Get port from environment variable or use default
     port = int(os.getenv("PORT", 8000))

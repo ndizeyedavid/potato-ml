@@ -225,7 +225,7 @@ export const ImageUpload = () => {
 
       const response = await axios({
         method: "post",
-        url: process.env.REACT_APP_API_URL,
+        url: `${process.env.REACT_APP_API_URL}/predict`,
         data: formData,
         headers: {
           "Content-Type": "multipart/form-data",
