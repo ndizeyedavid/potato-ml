@@ -11,7 +11,7 @@ ENV PYTHONUNBUFFERED=1 \
     HOST=0.0.0.0 \
     DEBIAN_FRONTEND=noninteractive \
     MONGODB_URI=mongodb://potatoml_milenodded:ad021f2d26979368a8c42bd5102032da7d171866@ym0c1x.h.filess.io:61034/potatoml_milenodded \
-    MONGODB_DATABASE=potato_disease_db
+    MONGODB_DATABASE=potatoml_milenodded
 
 # Install system dependencies required for TensorFlow and Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
