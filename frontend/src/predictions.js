@@ -19,7 +19,7 @@ import {
   CircularProgress,
   Snackbar,
   Button,
-  Pagination,
+  // Pagination,
 } from "@material-ui/core";
 import { common } from "@material-ui/core/colors";
 
@@ -339,16 +339,7 @@ export const PredictionsDashboard = () => {
                   </TableContainer>
 
                   {pagination.pages > 1 && (
-                    <div className={classes.paginationContainer}>
-                      <Pagination
-                        count={pagination.pages}
-                        page={pagination.page}
-                        onChange={handlePageChange}
-                        color="primary"
-                        showFirstButton
-                        showLastButton
-                      />
-                    </div>
+                    <div className={classes.paginationContainer}></div>
                   )}
                 </CardContent>
               )}

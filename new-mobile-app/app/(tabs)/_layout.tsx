@@ -31,15 +31,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color }) => (
-            <MaterialCommunityIcons name="chart-line" size={24} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="map"
         options={{
           title: "Map",
