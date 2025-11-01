@@ -371,6 +371,79 @@ async def get_predictions(
             detail="Internal server error while retrieving predictions"
         )
 
+# Add this new endpoint after the existing endpoints
+@app.get("/digital-twin")
+async def get_digital_twin_data() -> Dict[str, Any]:
+    """Get latest prediction data formatted for Unity Digital-twin prototype"""
+    try:
+        # Get database connection
+        db = get_database()
+        if db is None:
+            logger.warning("MongoDB not initialized")
+            raise HTTPException(
+                status_code=503,
+                detail="Database not available"
+            )
+            
+        # Retrieve the latest prediction from MongoDB
+        collection = db["predictions"]
+        latest_prediction = collection.find_one(
+            {},
+            sort=[("timestamp", -1)]  # Sort by timestamp descending to get the latest
+        )
+        
+        if not latest_prediction:
+            # If no predictions exist, return default healthy state
+            return {
+                "plant_id": "plot-A-03",
+                "disease_type": "healthy",
+                "disease_level": 0.0,
+                "timestamp": datetime.utcnow().isoformat() + "Z"
+            }
+        
+        # Map disease types to levels
+        disease_level_map = {
+            "Early Blight": 0.6,
+            "Late Blight": 1.0,
+            "Healthy": 0.0
+        }
+        
+        # Extract required data
+        disease_type = latest_prediction.get("predicted_class", "Healthy")
+        disease_level = disease_level_map.get(disease_type, 0.0)
+        
+        # Format the response
+        timestamp = latest_prediction.get("timestamp", datetime.utcnow())
+        if hasattr(timestamp, 'isoformat'):
+            timestamp_str = timestamp.isoformat()
+        else:
+            timestamp_str = str(timestamp)
+        
+        # Ensure timestamp ends with Z for UTC
+        if not timestamp_str.endswith('Z'):
+            timestamp_str += "Z"
+        
+        return {
+            "plant_id": "plot-A-03",
+            "disease_type": disease_type.lower().replace(" ", "_"),
+            "disease_level": disease_level,
+            "timestamp": timestamp_str
+        }
+        
+    except OperationFailure as e:
+        logger.error(f"MongoDB authorization error: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail="Database authentication failed"
+        )
+    except Exception as e:
+        logger.error(f"Failed to retrieve digital twin data: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(
+            status_code=500,
+            detail="Internal server error while retrieving digital twin data"
+        )
+
 if __name__ == "__main__":
     # Get port from environment variable or use default
     port = int(os.getenv("PORT", 8000))
